@@ -1,16 +1,14 @@
-library(tidyverse)
-library(ComplexHeatmap)
-library(argparser)
+
+`%>%`<-magrittr::`%>%`
 #log<-file('log/test_log.log', open='wt')
 # log <- file(snakemake@log[[1]], open="wt")
 # sink(log, type="message")
 
-message(ls())
 
-parser <- arg_parser(description = "Arguments for Heatmap generation")
-parser <- add_argument(parser, "--fn", help = "Filename with MetaNeighbor Output")
-parser <- add_argument(parser, "--outdir", help ='Directory to store figure files in')
-args <- parse_args(parser)
+parser <- argparser::arg_parser(description = "Arguments for Heatmap generation")
+parser <- argparser::add_argument(parser, "--fn", help = "Filename with MetaNeighbor Output")
+parser <- argparser::add_argument(parser, "--outdir", help ='Directory to store figure files in')
+args <- argparser::parse_args(parser)
 fn <- args$fn
 outdir <-args$outdir
 
@@ -44,7 +42,7 @@ build_annotation <- function(meta, side = 'column') {
         
     }
     annot <-
-        HeatmapAnnotation(
+        ComplexHeatmap::HeatmapAnnotation(
             df = meta,
             col = color_list,
             which = side,
@@ -70,7 +68,7 @@ build_heatmap <- function(mat,
     if (!is.null(row_meta)) {
         row_meta <- build_annotation(row_meta, side = 'row')
     }
-    mat %>% Heatmap(
+    mat %>% ComplexHeatmap::Heatmap(
         .,
         cluster_rows = F,
         cluster_columns = F,
@@ -95,11 +93,11 @@ df <- read.csv(fn)
 results_name <- tools::file_path_sans_ext(fn)
 outfile <- paste(outdir, basename(results_name), ".pdf", sep = "")
 mat <- df %>%
-  select(!c(Pseudotime.Bin, Study, Lineage)) %>%
+  dplyr::select(!c(Pseudotime.Bin, Study, Lineage)) %>%
   as.matrix()
 mat <- mat[, -1]
 
-meta <- df %>% select(c(Lineage, Study, Pseudotime.Bin))
+meta <- df %>% dplyr::select(c(Lineage, Study, Pseudotime.Bin))
 n_lins <- meta$Lineage %>%
   unique() %>%
   length()
