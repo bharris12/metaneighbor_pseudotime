@@ -48,25 +48,19 @@ design = pd.read_csv(args.design_fn, index_col=0)
 output_path = args.output_dir
 if not Path(output_path).is_dir():
     logging.info(f'Creating Path {output_path}')
-    Path(output_path).mkdir()
+    Path(output_path).mkdir(parents=True)
 
 term_sizes = design.sum()
-design = design.loc[:, (term_sizes > args.min_size) &
-                    (term_sizes < args.max_size)]
+design = design.loc[:, (term_sizes >= args.min_size) &
+                    (term_sizes <= args.max_size)]
 
 assert design.shape[
     1] > 0, f'No design are larger than {args.min_size} and smaller than {args.max_size}'
 
 logging.info(f'Creating gene list files for {design.shape[1]} terms')
 
-term_files = pd.Series(index=design.columns, name='terms_file')
-term_files.index.name = 'term_name'
-
 for term in design.columns:
-    genes = design.index[design[term].astype(bool)]
-    term = term.replace(' ', '_')
+    genes = design.index[design[term].astype(bool)].values
+    term = term.replace(' ', '_').replace(':','_')
     outfile = f'{output_path}{term}_genelist.txt'
     np.savetxt(outfile, genes, fmt='%s')
-    term_files[term] = outfile
-
-term_files.to_csv(f'{output_path}terms_info.csv')
