@@ -1,16 +1,16 @@
+Rscript : '/opt/R/R-4.0.0/bin/Rscript'
 
-dataDir : 'pseudotime/data/monocle/metaneighbor/'
+dataDir : 'data/' #WRT Snakefile directory
+figureDir : 'figures/' #WRT Snakefile directory
 
-terms_file : '/home/bharris/pseudotime/scripts/mn_pipeline/test_terms.csv'
+mkl_threads : 8
+n_bins : 16
 
 dataset_filename : '/home/bharris/pseudotime/data/monocle/erythroid_and_monocyte_lineage_adata.h5ad'
 dataset_name : 'erythroid_and_monocyte'
-mkl_threads : 8
 
-n_bins : 16
 
 prepare_terms :
-  terms_dir : '/home/bharris/pseudotime/data/monocle/metaneighbor/tabula_muris_genelists/'
   terms_design : '/home/bharris/pseudotime/data/monocle/metaneighbor/tabula_muris_markers_design.csv'
   min_size : 10
   max_size : 100
@@ -18,10 +18,11 @@ prepare_terms :
 
 metaneighbor :
   join_bin : 'lineage'
-  rank_by : 'monocle_ps'
+  rank_by : ['lineage','study_id']
   study_col : 'study_id'
   pseudotime_col: 'monocle_ps'
   max_genes : 100
   fast_version : True
+
 continuity :
   threshold : .7

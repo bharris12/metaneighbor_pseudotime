@@ -1,21 +1,19 @@
-
-
-suppressPackageStartupMessages({
-    library(tidyverse)
-    library(ComplexHeatmap)
-    library(argparser)}) # argparse
-
+library(tidyverse)
+library(ComplexHeatmap)
+library(argparser)
 #log<-file('log/test_log.log', open='wt')
 # log <- file(snakemake@log[[1]], open="wt")
 # sink(log, type="message")
 
 message(ls())
 
-# parser <- arg_parser(description = "Arguments for Heatmap generation")
-# parser <- add_argument(parser, "--fn", help = "Filename with MetaNeighbor Output")
-# args <- parse_args(parser)
-# fn <- args$fn
-fn <- snakemake@input[['mn_res']]
+parser <- arg_parser(description = "Arguments for Heatmap generation")
+parser <- add_argument(parser, "--fn", help = "Filename with MetaNeighbor Output")
+parser <- add_argument(parser, "--outdir", help ='Directory to store figure files in')
+args <- parse_args(parser)
+fn <- args$fn
+outdir <-args$outdir
+
 build_annotation <- function(meta, side = 'column') {
     cols <- colnames(meta)
     color_list <- vector(mode = "list", length = length(cols))
@@ -95,7 +93,7 @@ build_heatmap <- function(mat,
 
 df <- read.csv(fn)
 results_name <- tools::file_path_sans_ext(fn)
-outfile <- paste(results_name, ".pdf", sep = "")
+outfile <- paste(outdir, basename(results_name), ".pdf", sep = "")
 mat <- df %>%
   select(!c(Pseudotime.Bin, Study, Lineage)) %>%
   as.matrix()

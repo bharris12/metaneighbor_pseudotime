@@ -12,7 +12,8 @@ warnings.filterwarnings('ignore')
 if 'snakemake' in globals():
     from types import SimpleNamespace
     args = dict(input=snakemake.input[0],
-                threshold=snakemake.params[0])
+                threshold=snakemake.params[0],
+                outdir=snakemake.params[1])
     args = SimpleNamespace(**args)
 else:
     from argparse import ArgumentParser
@@ -28,6 +29,7 @@ else:
         type=float,
         default=.7,
         help='Threshold for binarizing the metaneighbor results (default : .7')
+    parser.add_argument('--outdir', dtype=str, help='Output directory')
     args = parser.parse_args()
 
 
@@ -44,8 +46,10 @@ def isotonic_regression(dist):
     dist['norm_resid'] = dist['resid'].values / dist['max_resid'].values
     return dist
 
+
 def get_binary_coord(df):
     return pd.DataFrame(np.where(df), index=['r', 'c']).T
+
 
 def test_isotonicRegression(mat,
                             dist_func=get_binary_coord,
@@ -63,6 +67,7 @@ def is_monotonic_col(mat):
 def percent_monotonic_cols(mat):
     monotonic = is_monotonic_col(mat)
     return monotonic.sum() / monotonic.shape[0]
+
 
 def read_mn_res(fn):
     df = pd.read_csv(fn,
@@ -114,11 +119,11 @@ def compute_pairwise_scores(mn_res, threshold=.7):
 metaneighbor_output_fn = args.input
 threshold = args.threshold
 
-
 logging.info(f'Reading results from: {metaneighbor_output_fn.split("/")[-1]}')
 mn_output = read_mn_res(metaneighbor_output_fn)
 res = compute_pairwise_scores(mn_output, threshold=threshold)
 
-output_fn = metaneighbor_output_fn.replace('MNUS', 'CONTINUITY')
+output_fn = args.outdir + metaneighbor_output_fn.replace(
+    'MNUS', 'CONTINUITY').split('/')[-1]
 logging.info(f'Saving Results to : {metaneighbor_output_fn.split("/")[-1]}')
 res.to_csv(output_fn)
