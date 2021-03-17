@@ -2,10 +2,12 @@ import os
 import numpy as np
 import pandas as pd
 
+import logging
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
 ## Snakefile for computing metaneighbor and continuity scores
 def get_genelist_fn(wildcards):
 	fn = dataDir + 'terms/' + wildcards.term.replace(' ','_') + '_genelist.txt'
-	print(fn)
 	return fn
 
 
@@ -37,14 +39,15 @@ suffix = f'{save_dataset_name}_{n_bins}'
 
 
 #Get term names for results
+logging.info('Determining which terms to use')
 terms = pd.read_csv(config['prepare_terms']['terms_design'], index_col=0)
 term_s = np.sum(terms.values,axis=0)
 size_slice = (term_s >= config['prepare_terms']['min_size']) & (term_s <= config['prepare_terms']['max_size'])
 terms = terms.columns[size_slice]
 assert terms.shape[0] > 0, "Terms must be greater than 0"
-fix_terms = np.vectorize(lambda x: x.replace(' ','_'))
+fix_terms = np.vectorize(lambda x: x.replace(' ','_').replace(':','_'))
 terms = fix_terms(terms)
-
+logging.info(f'Running Pipeline on {terms.shape[0]} terms')
 
 rule all:
 	input:
@@ -113,6 +116,7 @@ rule continuity:
 		dataDir + dataset_name + '/continuity/CONTINUITY_{term}_' + suffix + '.csv'
 	conda:
 		'envs/pseudotime_metaneighbor.yml'
+	threads: 1
 	script:
 		'scripts/continunity_test_on_term.py'
 
@@ -121,6 +125,7 @@ rule heatmap:
 		mn_res = dataDir + dataset_name + '/metaneighbor/MNUS_{term}_' + suffix + '.csv'
 	params:
 		out_dir = figDir + dataset_name + '/'
+	threads: 1
 	output:
 		figDir + dataset_name + '/MNUS_{term}_' + suffix + '.pdf'
 	# conda:
