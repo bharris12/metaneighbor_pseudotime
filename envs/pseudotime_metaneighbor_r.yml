@@ -1,0 +1,10 @@
+name: pseudotimeMetaneighborR
+channels:
+  - conda-forge/label/gcc7
+  - bioconda/label/gcc7
+  - r
+dependencies:
+  - r-base
+  - r-tidyverse
+  - bioconductor-complexheatmap
+  - r-rcolorbrewer
