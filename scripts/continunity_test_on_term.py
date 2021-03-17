@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.isotonic import IsotonicRegression
-from itertools import product
+from itertools import product, groupby
 
 import logging
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
@@ -29,11 +29,11 @@ else:
         type=float,
         default=.7,
         help='Threshold for binarizing the metaneighbor results (default : .7')
-    parser.add_argument('--outdir', dtype=str, help='Output directory')
+    parser.add_argument('--outdir', type=str, help='Output directory')
     args = parser.parse_args()
 
 
-def isotonic_regression(dist):
+def isotonic_regression(dist, n_bins):
     reg = IsotonicRegression(increasing='False').fit(dist['c'].values,
                                                      dist['r'].values)
     dist['fitC'] = reg.transform(dist['c'].values)
@@ -52,11 +52,12 @@ def get_binary_coord(df):
 
 
 def test_isotonicRegression(mat,
+                            n_bins,
                             dist_func=get_binary_coord,
-                            n_bins=16,
                             ret_val='norm_resid'):
-    dist = isotonic_regression(dist_func(mat))
-    return dist[ret_val].mean()
+    dist = dist_func(mat)
+    dist = isotonic_regression(dist, n_bins)
+    return np.nanmean(dist[ret_val])
 
 
 def is_monotonic_col(mat):
@@ -105,12 +106,16 @@ def compute_pairwise_scores(mn_res, threshold=.7):
     for row in results.itertuples():
         lin, ds1, ds2 = row.Index
         mat = mn_res.loc[(lin, ds1), (lin, ds2)].values > threshold
+        n_bins = mat.shape[0]
         try:
-            res_c = test_isotonicRegression(mat, dist_func=get_binary_coord)
+            res_c = test_isotonicRegression(mat,n_bins, dist_func=get_binary_coord)
+        except:
+            res_c = np.nan            
+        try:
             res_m = percent_monotonic_cols(mat)
         except:
-            res_c = np.nan
             res_m = np.nan
+
         results.loc[row.Index, 'Continuous'] = res_c
         results.loc[row.Index, 'Monotonic'] = res_m
     return results
@@ -122,8 +127,7 @@ threshold = args.threshold
 logging.info(f'Reading results from: {metaneighbor_output_fn.split("/")[-1]}')
 mn_output = read_mn_res(metaneighbor_output_fn)
 res = compute_pairwise_scores(mn_output, threshold=threshold)
-
 output_fn = args.outdir + metaneighbor_output_fn.replace(
     'MNUS', 'CONTINUITY').split('/')[-1]
-logging.info(f'Saving Results to : {metaneighbor_output_fn.split("/")[-1]}')
+logging.info(f'Saving Results to : {output_fn}')
 res.to_csv(output_fn)
