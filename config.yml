@@ -1,3 +1,6 @@
+## Configuration script for Snakemake pipeline for metaneighbor pseudotimes
+
+
 Rscript : '/opt/R/R-4.0.0/bin/Rscript'
 
 dataDir : 'data/' #WRT Snakefile directory
@@ -25,4 +28,7 @@ metaneighbor :
   fast_version : True
 
 continuity :
-  threshold : .7
+  binary_threshold : .7
+  soft_threshold : .5
+  dist_func : 'weighted_dist'
+  beta : 10

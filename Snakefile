@@ -110,8 +110,11 @@ rule continuity:
 	input:
 		mn_res = dataDir + dataset_name + '/metaneighbor/MNUS_{term}_' + suffix + '.csv'
 	params:
-		threshold = config['continuity']['threshold'],
-		outDir = dataDir + dataset_name + '/continuity/'
+		binary_threshold = config['continuity']['binary_threshold'],
+		outDir = dataDir + dataset_name + '/continuity/' ,
+		dist_func = config['continuity']['dist_func'],
+		beta = config['continuity']['beta'],
+		solf_threshold = config['continuity']['soft_threshold']
 	output:
 		dataDir + dataset_name + '/continuity/CONTINUITY_{term}_' + suffix + '.csv'
 	conda:
