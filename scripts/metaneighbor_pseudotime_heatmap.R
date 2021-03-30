@@ -21,7 +21,7 @@ parser <-
                           default = 0,
                           help = "Argument to split heatmaps into each lineage, pass non-zero for T")
 parser <-
-  argparser::add.argument(parser, '--file-ext', default = 'png', help = 'Extensio to use for saving, png or pdf')
+  argparser::add_argument(parser, '--file-ext', default = 'png', help = 'Extensio to use for saving, png or pdf')
 
 args <- argparser::parse_args(parser)
 fn <- args$fn
@@ -96,7 +96,7 @@ build_heatmap <- function(mat,
     png(file = figfile,
       width = 700,
       height = 500)
-  } elif (tools::figfile(figfile)=='pdf'){
+  } else {
     pdf(file=figfile,
         width = 7,
         height = 5)

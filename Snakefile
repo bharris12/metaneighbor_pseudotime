@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 import logging
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
@@ -30,6 +31,12 @@ dataDir = cwd + config['dataDir']
 figDir = cwd  + config['figureDir']
 
 dataset_name = config['dataset_name']
+heatmap_ext = config['heatmap']['extension']
+
+# if not Path(dataDir + dataset_name).is_dir():
+#     logging.info(f'Creating Path {dataDir + dataset_name}')
+#     Path(dataDir + dataset_name).mkdir(parents=True)
+
 n_bins=config['n_bins']
 
 save_dataset_name = build_save_dataset_name(dataset_name, 
@@ -61,11 +68,12 @@ rule all:
             dataset=dataset_name,
             term=terms,
             suffix=suffix),
-        expand('{figDir}{dataset}/MNUS_{term}_{suffix}.pdf', 
+        expand('{figDir}{dataset}/MNUS_{term}_{suffix}.{extension}', 
             figDir = figDir,
             dataset = dataset_name, 
             term=terms, 
-            suffix=suffix),
+            suffix=suffix,
+            extension=config['heatmap']['extension']),
         expand(dataDir + 'terms/{term}_genelist.txt', term=terms)
 
 rule prepare_terms:
@@ -132,7 +140,7 @@ rule heatmap:
         extension = config['heatmap']['extension']
     threads: 1
     output:
-        figDir + dataset_name + '/MNUS_{term}_' + suffix + '.{params.extension}' 
+        figDir + dataset_name + '/MNUS_{term}_' + suffix + '.'  + heatmap_ext
     # conda:
     #   'envs/pseudotime_metaneighbor_r.yml'
     # log:
@@ -140,7 +148,7 @@ rule heatmap:
     # script:
     #   'scripts/metaneighbor_pseudotime_heatmap.R'
     shell:
-        config['Rscript'] + """scripts/metaneighbor_pseudotime_heatmap.R \
+        config['Rscript'] + """ scripts/metaneighbor_pseudotime_heatmap.R \
                                 --fn {input.mn_res} \
                                 --outdir {params.out_dir} \
                                 --split-lineages {params.split_lineages} \

@@ -261,8 +261,8 @@ def compute_pairwise_scores(mn_res, dist_func, beta, binary_threshold,
         mat = mn_res.loc[(lin, ds1), (lin, ds2)].values
         n_bins = mat.shape[0]
         try:
-            res_c = ITregression(mat, n_bins, dist_func, beta,
-                                 binary_threshold, soft_threshold)
+            res_c = 1 - ITregression(mat, n_bins, dist_func, beta,
+                                     binary_threshold, soft_threshold)
         except:
             res_c = np.nan
         try:

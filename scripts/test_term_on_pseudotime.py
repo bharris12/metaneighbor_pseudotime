@@ -149,6 +149,7 @@ slow = args.slow
 mkl.set_num_threads(n_threads)
 logging.info('Loading Dataset')
 adata = sc.read(adata_fn)
+adata = adata[adata.obs[join_bin] !='nan']
 sc.pp.normalize_total(adata, target_sum=1e6)
 sc.pp.log1p(adata)
 bin_col = f'ps_bin_{n_bins}'
